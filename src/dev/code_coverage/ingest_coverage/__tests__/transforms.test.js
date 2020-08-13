@@ -18,7 +18,8 @@
  */
 
 import expect from '@kbn/expect';
-import { ciRunUrl, coveredFilePath, itemizeVcs, prokPrevious } from '../transforms';
+import { ciRunUrl, coveredFilePath, itemizeVcs, prokPrevious, teamAssignment } from '../transforms';
+import { ToolingLog } from '@kbn/dev-utils';
 
 describe(`Transform fn`, () => {
   describe(`ciRunUrl`, () => {
@@ -81,6 +82,25 @@ describe(`Transform fn`, () => {
         'vcsUrl',
         `https://github.com/elastic/kibana/commit/${vcsInfo[1]}`
       );
+    });
+  });
+  describe(`teamAssignment`, () => {
+    const teamAssignmentsPath =
+      'src/dev/code_coverage/ingest_coverage/team_assignment/team_assignments.txt';
+    const coveredFilePath = 'x-pack/plugins/reporting/server/browsers/extract/unzip.js';
+    const obj = { coveredFilePath };
+    const log = new ToolingLog({
+      level: 'info',
+      writeTo: process.stdout,
+    });
+
+    describe(`with a coveredFilePath of ${coveredFilePath}`, () => {
+      const expected = 'kibana-reporting';
+      it(`should resolve to ${expected}`, async () => {
+        const actual = await teamAssignment(teamAssignmentsPath)(log)(obj);
+        const { team } = actual;
+        expect(team).to.eql(expected);
+      });
     });
   });
 });
